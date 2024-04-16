@@ -6,19 +6,20 @@ const jwt = require("jsonwebtoken");
 const signupController = {
   addUser: async (req, res) => {
     try {
-      let { fullName, email, password } = req.body;
+      let { fname, lname, email, pass } = req.body;
       const isUnique = await userModel.findOne({ email });
       if (!isUnique) {
         const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(password, salt);
+        const hash = await bcrypt.hash(pass, salt);
         pass = hash;
         const result = new userModel({
-          fullName: fullName,
+          firstName: fname,
+          lastName: lname,
           email: email,
           password: pass,
         });
         await result.save();
-       // sendMail(email);
+        sendMail(email);
         // console.log("new");
         res.send("new");
       } else {
@@ -51,7 +52,7 @@ const signupController = {
       const hash = await bcrypt.hash(pass, salt);
       pass = hash;
       const result = await userModel.findOneAndUpdate({
-        email: email,
+        eamil: email,
         password: pass,
       });
       if (result) {
