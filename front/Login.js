@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import * as Yup from 'yup';
+import axios from 'axios';
+
+const baseURL = 'http://192.168.100.17:3000';
 
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -18,13 +21,30 @@ const Login = ({ navigation }) => {
   const handleLogin = async () => {
     try {
       await loginSchema.validate({ email, password });
-      // Proceed with login logic
-      console.log('Login successful');
+  
+      const userData = {
+        email: email,
+        password: password,
+      };
+  
+      console.log('Sending login request...');
       setError(''); // Clear any previous error message
+      const response = await axios.post(`${baseURL}/login`, userData);
+  
+      if (response.data.result && response.data.token) {
+        // Handle successful login
+        console.log('Login successful');
+        setError('');
+        // Example: Save token to AsyncStorage for future use
+        // AsyncStorage.setItem('token', response.data.token);
+      } else {
+        setError('Invalid credentials'); // Or set error based on backend response
+      }
     } catch (validationError) {
       setError(validationError.message);
     }
   };
+  
 
   const switchToSignUp = () => {
     navigation.navigate('SignUp');

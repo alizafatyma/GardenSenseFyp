@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import * as Yup from 'yup';
+import axios from 'axios';
+
+const baseURL = 'http://192.168.100.17:3000';
 
 // Define the schema for signup validation
 const signUpSchema = Yup.object().shape({
@@ -21,8 +24,25 @@ const SignUp = () => {
   const handleSignUp = async () => {
     try {
       await signUpSchema.validate({ fullName, email, password });
-      // Proceed with signup logic
-      setError(''); // Clear any previous error
+
+      const userData = {
+        fullName: fullName,
+        email: email,
+        pass: password
+      };
+
+      console.log('Sending request...');
+      setError(''); 
+      const response = await axios.post(`${baseURL}/signup`, userData);
+    
+      if (response.data === 'new') {
+        setError('');
+        // Handle successful signup
+        console.log('Signup successful');
+      } else if (response.data === 'exist') {
+        setError('Email already exists');
+      }
+
     } catch (validationError) {
       setError(validationError.message);
     }
