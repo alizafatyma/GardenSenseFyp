@@ -9,9 +9,11 @@ const PORT = process.env.REACT_APP_PORT;
 const IP = process.env.REACT_APP_IP;
 
 const app = express();
-const route = require("./routes/routes");
+const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
 app.use(express.json());
-app.use("/", route);
+app.use("/auth", authRoutes);
+app.use("/user", userRoutes);
 app.listen(PORT, IP, () => {
-  console.log(`server running at : http://192.168.0.119:3000/`);
+  console.log(`server running at : http://192.168.100.17:3000/`);
 });

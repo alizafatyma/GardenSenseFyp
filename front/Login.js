@@ -29,7 +29,7 @@ const Login = ({ navigation }) => {
   
       console.log('Sending login request...');
       setError(''); // Clear any previous error message
-      const response = await axios.post(`${baseURL}/login`, userData);
+      const response = await axios.post(`${baseURL}/auth/login`, userData);
   
       if (response.data.result && response.data.token) {
         // Handle successful login

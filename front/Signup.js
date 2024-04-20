@@ -33,7 +33,7 @@ const SignUp = () => {
 
       console.log('Sending request...');
       setError(''); 
-      const response = await axios.post(`${baseURL}/signup`, userData);
+      const response = await axios.post(`${baseURL}/auth/signup`, userData);
     
       if (response.data === 'new') {
         setError('');
