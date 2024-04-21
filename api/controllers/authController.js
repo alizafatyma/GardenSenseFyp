@@ -71,12 +71,12 @@ const signupController = {
       const { email, password } = req.body;
       //console.log(email+password);
       const result = await userModel.findOne({ email });
-  
+    
       if (result) {
         const isValid = await bcrypt.compare(password, result.password);
         if (isValid) {
           jwt.sign(
-            { result },
+            { userId: result._id },  // Include user ID in the payload
             "mySecret",
             { expiresIn: "1h" },
             (err, token) => {
@@ -84,7 +84,7 @@ const signupController = {
                 console.log(err.message);
                 res.send(err.message);
               } else {
-                return res.send({ result: result, token: token });
+                return res.send({ result: result, userId: result._id, token: token });  // Send user ID along with token
               }
             }
           );
