@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import * as Yup from 'yup';
 import axios from 'axios';
@@ -21,22 +22,38 @@ const Login = ({ navigation }) => {
   const handleLogin = async () => {
     try {
       await loginSchema.validate({ email, password });
-  
+
       const userData = {
         email: email,
         password: password,
       };
-  
+
       console.log('Sending login request...');
       setError(''); // Clear any previous error message
       const response = await axios.post(`${baseURL}/auth/login`, userData);
-  
+
       if (response.data.result && response.data.token) {
         // Handle successful login
         console.log('Login successful');
         setError('');
-        // Example: Save token to AsyncStorage for future use
-        // AsyncStorage.setItem('token', response.data.token);
+        // Save token and user ID to AsyncStorage for future use
+        AsyncStorage.setItem('token', response.data.token);
+        AsyncStorage.setItem('userId', response.data.userId);
+
+        console.log('User ID:', response.data.userId);
+
+        AsyncStorage.getItem('userId')
+          .then(userId => {
+            if (userId !== null) {
+              console.log(userId); // This will log the user ID
+            } else {
+              console.log('User ID not found');
+            }
+          })
+          .catch(error => {
+            console.log('Error retrieving user ID:', error);
+          });
+
       } else {
         setError('Invalid credentials'); // Or set error based on backend response
       }
@@ -44,7 +61,7 @@ const Login = ({ navigation }) => {
       setError(validationError.message);
     }
   };
-  
+
 
   const switchToSignUp = () => {
     navigation.navigate('SignUp');
