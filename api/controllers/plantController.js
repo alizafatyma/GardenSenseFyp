@@ -1,6 +1,8 @@
-const axios = require('axios');
+const axios = require('axios'); 
+require('dotenv').config();
 
-const apiKey = 'A1l4I7V7EagAb5pObi4gubPUyXsK1NnQT4CpoiVWFfAvnBgB3d'; 
+const apiKey = process.env.API_KEY;
+console.log(apiKey);
 
 exports.searchPlants = async (req, res) => {
   try {
