@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const postController = require('../controllers/postController');
-const upload = require("../middlewares/multer")
+const {uploadPostImages} = require("../middlewares/multer")
 
-router.post('/create', upload, postController.createPost);
+router.post('/create', uploadPostImages, postController.createPost);
 router.get('/', postController.getAllPosts);
 router.get('/:id', postController.getPostById);
 router.get('/user/:id', postController.getPostsByUserId);
