@@ -75,21 +75,22 @@ exports.getPlantDetails = async (req, res) => {
 
 exports.identifyPlant = async (req, res) => {
   try {
-    //console.log('Request files in controller:', req.file);
-    // Get base64 image data from request file
+    // Check if file is present in request
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided' });
+    }
+
+    // Read image file asynchronously
     const imageBase64 = await readFileAsync(req.file.path);
-    console.log('Image Base64:', imageBase64);
 
     // Set up request data
     const requestData = {
       images: [imageBase64],
     };
-    console.log('Request Data:', requestData);
 
     // Set up request config
     const config = {
       method: 'post',
-      //url: 'https://plant.id/api/v3/identification',
       url: 'https://plant.id/api/v3/identification?details=common_names,url,description,taxonomy,rank,gbif_id,inaturalist_id,image,synonyms,edible_parts,watering',
       headers: {
         'Api-Key': apiKey, // Replace with your actual API key
@@ -97,19 +98,57 @@ exports.identifyPlant = async (req, res) => {
       },
       data: requestData,
     };
-    console.log('Request Config:', config);
 
     // Send identification request
-    const response = await axios(config);
-    console.log('Identification Response:', response.data);
+    const identificationResult = await axios(config);
 
-    // Handle response
-    console.log('Identification Result:', response.data);
+    // Check if identification result is present
+    if (!identificationResult.data || !identificationResult.data.result) {
+      return res.status(400).json({ error: 'Invalid identification result' });
+    }
 
-    // Send identification result back to client
-    res.json(response.data);
+    const { result } = identificationResult.data;
+
+    // Check if plant identification was successful
+    if (!result.is_plant || !result.is_plant.binary) {
+      return res.status(400).json({ error: 'Unable to identify a plant' });
+    }
+
+    // Check if plant identification probability is above threshold
+    if (result.is_plant.probability < result.is_plant.threshold) {
+      return res.status(400).json({ error: 'Identification probability too low' });
+    }
+
+    // Check if suggestions are present
+    if (!result.classification || !result.classification.suggestions || result.classification.suggestions.length === 0) {
+      return res.status(400).json({ error: 'No suggestions found for identification' });
+    }
+
+    // Extract the top suggestion
+    const topSuggestion = result.classification.suggestions[0];
+
+    // Prepare response for frontend
+    const response = {
+      access_token: identificationResult.data.access_token,
+      id: topSuggestion.id,
+      plant_name: topSuggestion.name,
+      common_names: topSuggestion.details.common_names,
+      probability: result.is_plant.probability,
+      taxonomy: topSuggestion.details.taxonomy,
+      description: topSuggestion.details.description,
+      image: topSuggestion.details.image.value,
+      related_links: {
+        wikipedia: topSuggestion.details.url,
+        license: topSuggestion.details.image.license_url
+      }
+    };
+    
+
+    // Send response to frontend
+    res.json(response);
   } catch (error) {
     console.error('Error identifying plant:', error);
     res.status(500).json({ error: 'Failed to identify plant' });
   }
 };
+
