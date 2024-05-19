@@ -6,17 +6,26 @@ require('dotenv').config();
 const apiKey = process.env.API_KEY;
 console.log(apiKey);
 
-function readFileAsync(filePath) {
+function readFileAsync(file) {
+ // console.log('File object:', file); // Log the file object for debugging
   return new Promise((resolve, reject) => {
-    fs.readFile(filePath, { encoding: 'base64' }, (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(data);
-      }
-    });
+    // Check if the file object is valid
+    if (!file || !file.buffer) {
+      reject(new Error('Invalid file object'));
+      return;
+    }
+
+    try {
+      // Convert buffer to base64 encoding
+      const data = file.buffer.toString('base64');
+      resolve(data);
+    } catch (error) {
+      reject(error);
+    }
   });
 }
+
+
 
 exports.searchPlants = async (req, res) => {
   try {
@@ -81,7 +90,7 @@ exports.identifyPlant = async (req, res) => {
     }
 
     // Read image file asynchronously
-    const imageBase64 = await readFileAsync(req.file.path);
+    const imageBase64 = await readFileAsync(req.file);
 
     // Set up request data
     const requestData = {

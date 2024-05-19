@@ -1,6 +1,6 @@
 const multer = require('multer');
 
-// Define storage for uploaded files
+// Define storage for uploaded files - storage for post images
 const Storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, './uploads'); 
@@ -10,9 +10,12 @@ const Storage = multer.diskStorage({
     }
 });
 
+// storage for plant identification image
+const memoryStorage = multer.memoryStorage();
+
 // Initialize multer middleware for single file upload - Configuration for plant identification image
 const uploadPlantImage = multer({
-    storage: Storage,
+    storage: memoryStorage,
     limits: { fileSize: 10 * 1024 * 1024 } // 10MB file size limit
 }).single('image');
 
