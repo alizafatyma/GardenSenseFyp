@@ -3,9 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ActivityInd
 import * as Yup from 'yup';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const baseURL = 'http://192.168.100.9:3000';
-
+import {BASE_URL} from '@env';
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,7 +29,7 @@ const Login = ({ navigation }) => {
       };
 
       setError(''); // Clear any previous error message
-      const response = await axios.post(`${baseURL}/auth/login`, userData);
+      const response = await axios.post(`${BASE_URL}/auth/login`, userData);
 
       if (response.data.result && response.data.token) {
         console.log('Login successful');

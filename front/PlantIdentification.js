@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons } from '@expo/vector-icons';
 import BottomMenu from './BottomMenu';
 import axios from 'axios';
+import {BASE_URL} from '@env';
 export default function ImagePickerExample({ navigation }) {
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -39,7 +40,7 @@ export default function ImagePickerExample({ navigation }) {
     });
 
     try {
-      let response = await fetch('http://192.168.100.9:3000/plants/identify', {
+      let response = await fetch(`${BASE_URL}/plants/identify`, {
         method: 'POST',
         body: formData,
         headers: {

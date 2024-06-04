@@ -5,8 +5,7 @@ import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons';
 import { TextInput, Text, Card, Avatar, List } from 'react-native-paper';
 import BottomMenu from './BottomMenu';
-
-const baseURL = 'http://192.168.100.9:3000';
+import {BASE_URL} from '@env';
 
 const HomeScreen = ({ navigation }) => {
   const [userName, setUserName] = useState('');
@@ -18,7 +17,8 @@ const HomeScreen = ({ navigation }) => {
       try {
         const userId = await AsyncStorage.getItem('userId');
         if (userId) {
-          const response = await axios.get(`${baseURL}/user/${userId}`);
+          const response = await axios.get(`${BASE_URL}/user/${userId}`);
+          console.log(response.data);
           if (response.data.fullName) {
             setUserName(response.data.fullName);
           }
@@ -33,7 +33,7 @@ const HomeScreen = ({ navigation }) => {
 
   const handleSearch = async () => {
     try {
-      const response = await axios.get(`${baseURL}/plants/search?q=${searchQuery}`);
+      const response = await axios.get(`${BASE_URL}/plants/search?q=${searchQuery}`);
       setSearchResults(response.data || []);
     } catch (error) {
       console.error('Failed to fetch search results:', error);
@@ -56,7 +56,7 @@ const HomeScreen = ({ navigation }) => {
   const handleSearchResultClick = async (plantName) => {
     try {
       console.log(plantName);
-      const response = await fetch(`http://192.168.100.9:3000/plants/identify?name=${encodeURIComponent(plantName)}`);
+      const response = await fetch(`${BASE_URL}/plants/identify?name=${encodeURIComponent(plantName)}`);
       const result = await response.json();
       navigation.navigate('PlantIdentificationResult', { result });
     } catch (error) {

@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'reac
 import { useNavigation } from '@react-navigation/native';
 import * as Yup from 'yup';
 import axios from 'axios';
+import {BASE_URL} from '@env';
 const signUpSchema = Yup.object().shape({
   fullName: Yup.string().required('Full name is required'),
   //username: Yup.string().required('Username is required'),
@@ -12,7 +13,7 @@ const signUpSchema = Yup.object().shape({
   ),
   pass: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
 });
-const baseURL = 'http://192.168.100.9:3000';
+
 
 
   const SignUp = () => {
@@ -26,7 +27,7 @@ const baseURL = 'http://192.168.100.9:3000';
       try {
         await signUpSchema.validate({ fullName, email, pass });
     
-        const response = await axios.post(`${baseURL}/auth/signup`, {
+        const response = await axios.post(`${BASE_URL}/auth/signup`, {
           fullName,
           email,
           pass,
