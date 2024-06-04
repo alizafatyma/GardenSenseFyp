@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import * as Yup from 'yup';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
-const baseURL = 'http://192.168.100.17:3000';
+const baseURL = 'http://192.168.100.9:3000';
 
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const loginSchema = Yup.object().shape({
     email: Yup.string().matches(
@@ -22,6 +22,7 @@ const Login = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
+      setLoading(true); // Start loading
       await loginSchema.validate({ email, password });
 
       const userData = {
@@ -29,25 +30,22 @@ const Login = ({ navigation }) => {
         password: password,
       };
 
-      console.log('Sending login request...');
       setError(''); // Clear any previous error message
-      const response = await axios.post('${baseURL}/login', userData);
+      const response = await axios.post(`${baseURL}/auth/login`, userData);
 
       if (response.data.result && response.data.token) {
-        // Handle successful login
         console.log('Login successful');
         setError('');
-        // Save token to AsyncStorage for future use
         AsyncStorage.setItem('token', response.data.token);
-        // Save user ID to AsyncStorage for future use
         AsyncStorage.setItem('userId', response.data.userId);
-        // Navigate to HomeScreen
         navigation.navigate('HomeScreen');
       } else {
-        setError('Invalid credentials'); // Or set error based on backend response
+        setError('Invalid credentials');
       }
     } catch (validationError) {
       setError(validationError.message);
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -77,10 +75,13 @@ const Login = ({ navigation }) => {
         secureTextEntry
       />
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
+        {loading ? (
+          <ActivityIndicator size="small" color="#FFFFFF" />
+        ) : (
+          <Text style={styles.buttonText}>Login</Text>
+        )}
       </TouchableOpacity>
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      {/* Replace Text with TouchableOpacity for Sign Up */}
       <TouchableOpacity style={styles.signupButton} onPress={switchToSignUp}>
         <Text style={styles.signupText}>Sign Up</Text>
       </TouchableOpacity>
