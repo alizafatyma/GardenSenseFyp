@@ -7,7 +7,7 @@ const apiKey = process.env.API_KEY;
 console.log(apiKey);
 
 function readFileAsync(file) {
- // console.log('File object:', file); // Log the file object for debugging
+  // console.log('File object:', file); // Log the file object for debugging
   return new Promise((resolve, reject) => {
     // Check if the file object is valid
     if (!file || !file.buffer) {
@@ -100,7 +100,7 @@ exports.identifyPlant = async (req, res) => {
     // Set up request config
     const config = {
       method: 'post',
-      url: 'https://plant.id/api/v3/identification?details=common_names,url,description,taxonomy,rank,gbif_id,inaturalist_id,image,synonyms,edible_parts,watering',
+      url: 'https://plant.id/api/v3/identification?details=common_names,url,description,taxonomy,rank,gbif_id,inaturalist_id,image,synonyms,edible_parts,propagation_methods,watering',
       headers: {
         'Api-Key': apiKey, // Replace with your actual API key
         'Content-Type': 'application/json',
@@ -136,6 +136,8 @@ exports.identifyPlant = async (req, res) => {
     // Extract the top suggestion
     const topSuggestion = result.classification.suggestions[0];
 
+    console.log("progagtion: "+topSuggestion.details.propagation_methods);
+
     // Prepare response for frontend
     const response = {
       access_token: identificationResult.data.access_token,
@@ -146,12 +148,15 @@ exports.identifyPlant = async (req, res) => {
       taxonomy: topSuggestion.details.taxonomy,
       description: topSuggestion.details.description,
       image: topSuggestion.details.image.value,
+      edible_parts: topSuggestion.details.edible_parts,
+      propagation_methods: topSuggestion.details.propagation_methods,
+      watering: topSuggestion.details.watering,
       related_links: {
         wikipedia: topSuggestion.details.url,
         license: topSuggestion.details.image.license_url
       }
     };
-    
+
 
     // Send response to frontend
     res.json(response);
