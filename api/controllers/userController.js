@@ -100,10 +100,10 @@ const userController = {
 
         if (plantDetails) {
           savedPlantsDetails.push({
-           id: plantDetails.id,
-                    plant_name: plantDetails.plant_name,
-                    image: plantDetails.image,
-                    common_name: plantDetails.common_names[0]
+            id: plantDetails.id,
+            plant_name: plantDetails.plant_name,
+            image: plantDetails.image,
+            common_name: plantDetails.common_names[0]
           });
         } else {
           console.log(`Plant details not found for savedPlantId: ${savedPlant._id}`);
@@ -115,7 +115,33 @@ const userController = {
       console.error('Error fetching saved plants:', error);
       res.status(500).json({ error: 'Failed to fetch saved plants' });
     }
-  }
+  },
+  
+  getSavedPlantDetails: async (req, res) => {
+    const { userId, plantId } = req.params;
+
+    try {
+        const userExists = await userModel.findById(userId);
+        if (!userExists) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const savedPlant = await savedPlantModel.findOne({ userId, plantId });
+        if (!savedPlant) {
+            return res.status(404).json({ error: 'Plant not saved by user' });
+        }
+
+        const plant = await plantModel.findOne({ id: plantId });
+        if (!plant) {
+            return res.status(404).json({ error: 'Plant not found' });
+        }
+
+        res.status(200).json(plant);
+    } catch (error) {
+        console.error('Error fetching plant details:', error);
+        res.status(500).json({ error: 'Failed to fetch plant details' });
+    }
+}
 }
 
 module.exports = userController;
