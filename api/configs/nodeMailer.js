@@ -1,27 +1,42 @@
-const nodemailer = require("nodemailer");
-const sendMail = (email) => {
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
-    auth: {
-      user: "ha7910325@gmail.com",
-      pass: "vgtl qpdl pfzp fxdb",
-    },
-  });
+const nodemailer = require('nodemailer');
+const dotenv = require('dotenv');
 
-  async function main() {
-    const info = await transporter.sendMail({
-      from: '"New APP👻" <ha7910325@gmail.com>', // sender address
-      to: email, // list of receivers
-      subject: "Welcome ✔", // Subject line
-      html: "<h1>Welcome to sucessfuly Login on your first App?</h1>", // html body
+// Load environment variables
+dotenv.config();
+
+const sendMail = (email, subject, htmlContent) => {
+  return new Promise((resolve, reject) => {
+    if (!email) {
+      reject(new Error('Email address is required'));
+      return;
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
     });
 
-    console.log("Message sent: %s", info.messageId);
-  }
-
-  main().catch(console.error);
+    transporter.sendMail({
+      from: `"GardenSense" <${process.env.EMAIL_USER}>`, // sender address
+      to: email, // list of receivers
+      subject: subject, // Subject line
+      html: htmlContent, // html body
+    })
+      .then(info => {
+        console.log('Message sent: %s', info.messageId);
+        resolve({ success: true, message: 'Email sent successfully' });
+      })
+      .catch(error => {
+        console.error('Error sending email:', error);
+        reject({ success: false, message: 'Failed to send email' });
+      });
+  });
 };
 
 module.exports = sendMail;
+
