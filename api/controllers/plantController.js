@@ -1,5 +1,6 @@
 const axios = require('axios');
 const fs = require('fs');
+const plantFact = require('../models/plantFact')
 
 require('dotenv').config();
 
@@ -136,8 +137,6 @@ exports.identifyPlant = async (req, res) => {
     // Extract the top suggestion
     const topSuggestion = result.classification.suggestions[0];
 
-    console.log("progagtion: "+topSuggestion.details.propagation_methods);
-
     // Prepare response for frontend
     const response = {
       access_token: identificationResult.data.access_token,
@@ -165,4 +164,13 @@ exports.identifyPlant = async (req, res) => {
     res.status(500).json({ error: 'Failed to identify plant' });
   }
 };
+
+exports.getPlantFacts = async (req, res) => {
+  try {
+    const facts = await plantFact.find();
+    res.status(200).json(facts);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch facts: ' + error.message });
+  }
+}
 
