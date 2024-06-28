@@ -7,7 +7,7 @@ const signupController = {
   addUser: async (req, res) => {
     try {
       //console.log('AddUser function called');
-      let { fullName, username, email, pass } = req.body;
+      let { fullName, username, email, pass, fcmToken } = req.body;
 
       const userExists = await userModel.findOne({ email });
       if (userExists) {
@@ -21,6 +21,16 @@ const signupController = {
         return res.status(409).json({ error: 'Username already exists' });
       }
 
+      if (!fcmToken) {
+        return res.status(400).json({ error: 'FCM token is required' });
+      }
+
+      const existingTokenUser = await userModel.findOne({ fcmToken });
+    if (existingTokenUser) {
+      console.log('FCM token is already associated with another user');
+      return res.status(409).json({ error: 'FCM token is already in use' });
+    }
+
 
       const salt = await bcrypt.genSalt(10);
       const hash = await bcrypt.hash(pass, salt);
@@ -30,6 +40,7 @@ const signupController = {
         username: username,
         email: email,
         password: pass,
+        fcmToken: fcmToken
       });
       await result.save();
 
@@ -112,8 +123,14 @@ const signupController = {
   },
   updatePass: async (req, res) => {
     try {
-      let { email, pass } = req.body;
+      let { email, currentPassword, newPassowrd } = req.body;
       // console.log(email, pass);
+
+      const userExists = await userModel.findOne(email);
+      if(!userExists)
+        {
+          res.send
+        }
       const salt = await bcrypt.genSalt(10);
       const hash = await bcrypt.hash(pass, salt);
       pass = hash;

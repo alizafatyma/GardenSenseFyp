@@ -13,12 +13,14 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const plantRoutes = require('./routes/plantRoutes');
 const postRoutes = require('./routes/postRoutes');
+const reminderRoutes = require('./routes/reminderRoutes');
 
 app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use('/plants', plantRoutes);
 app.use('/posts', postRoutes);
+app.use('/reminders', reminderRoutes);
 
 app.listen(PORT, IP, () => {
   console.log(`server running at : http://192.168.100.17:3000/`);
