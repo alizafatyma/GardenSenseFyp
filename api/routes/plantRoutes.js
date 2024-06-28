@@ -7,5 +7,6 @@ const router = express.Router();
 router.get('/search', plantController.searchPlants);
 router.get('/details/:accessToken', plantController.getPlantDetails);
 router.post('/identify', uploadPlantImage, plantController.identifyPlant);
+router.get('/facts', plantController.getPlantFacts);
 
 module.exports = router;
