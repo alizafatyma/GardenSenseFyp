@@ -33,6 +33,9 @@ const userSchema = mongoose.Schema({
   bio: {
     type: String
   },
+  fcmToken: {
+    type: String,
+  }
 }, {
   timestamps: true
 });

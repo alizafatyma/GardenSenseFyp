@@ -20,55 +20,70 @@ const userController = {
   },
 
   savePlant: async (req, res) => {
-    const userId = req.params.userId;
+    const userId = req.params.userId || req.userId;
     const { id, plant_name, common_names, taxonomy, description, image, edible_parts, propagation_methods, watering } = req.body;
 
     try {
-      const userExists = await userModel.findById(userId);
-      if (!userExists) {
-        return res.status(404).json({ error: 'User not found' });
-      }
+        const userExists = await userModel.findById(userId);
+        if (!userExists) {
+            if (res) {
+                return res.status(404).json({ message: 'User not found' });
+            } else {
+                return { error: 'User not found' }; // Return error if called as a function
+            }
+        }
 
-      // Check if the plant is already saved by the user
-      const existingSavedPlant = await savedPlantModel.findOne({ userId, plantId: id });
+        // Check if the plant is already saved by the user
+        const existingSavedPlant = await savedPlantModel.findOne({ userId, plantId: id });
 
-      if (existingSavedPlant) {
-        return res.status(400).json({ error: 'Plant already saved' });
-      }
+        if (existingSavedPlant) {
+            if (res) {
+                return res.status(400).json({ error: 'Plant already saved' });
+            } else {
+                return { message: 'Plant already saved'};
+            }
+        }
 
-      // Create or update plant details in the Plant model
-      let plant = await plantModel.findOne({ id });
-      //console.log(plant);
+        // Create or update plant details in the Plant model
+        let plant = await plantModel.findOne({ id });
 
-      if (!plant) {
-        // If plant details not found, create a new entry in Plant model
-        plant = new plantModel({
-          id,
-          plant_name,
-          common_names,
-          taxonomy,
-          description,
-          image,
-          edible_parts,
-          propagation_methods,
-          watering
+        if (!plant) {
+            // If plant details not found, create a new entry in Plant model
+            plant = new plantModel({
+                id,
+                plant_name,
+                common_names,
+                taxonomy,
+                description,
+                image,
+                edible_parts,
+                propagation_methods,
+                watering
+            });
+
+            await plant.save();
+        }
+
+        // Create a new SavedPlant document linking the user and the plant
+        const savedPlant = new savedPlantModel({
+            userId,
+            plantId: id,
         });
 
-        await plant.save();
-      }
+        await savedPlant.save();
 
-      // Create a new SavedPlant document linking the user and the plant
-      const savedPlant = new savedPlantModel({
-        userId,
-        plantId: id,
-      });
-
-      await savedPlant.save();
-
-      res.status(201).json(savedPlant);
+        if (res) {
+            res.status(201).json(savedPlant);
+        } else {
+            return { message: 'Plant saved successfully', plant };
+        }
     } catch (error) {
-      console.error('Error saving plant:', error);
-      res.status(500).json({ error: 'Failed to save plant' });
+        console.error('Error saving plant:', error);
+        if (res) {
+            res.status(500).json({ error: 'Failed to save plant' });
+        } else {
+            return { error: 'Failed to save plant' };
+        }
     }
   },
 
@@ -100,10 +115,10 @@ const userController = {
 
         if (plantDetails) {
           savedPlantsDetails.push({
-           id: plantDetails.id,
-                    plant_name: plantDetails.plant_name,
-                    image: plantDetails.image,
-                    common_name: plantDetails.common_names[0]
+            id: plantDetails.id,
+            plant_name: plantDetails.plant_name,
+            image: plantDetails.image,
+            common_name: plantDetails.common_names[0]
           });
         } else {
           console.log(`Plant details not found for savedPlantId: ${savedPlant._id}`);
@@ -114,6 +129,32 @@ const userController = {
     } catch (error) {
       console.error('Error fetching saved plants:', error);
       res.status(500).json({ error: 'Failed to fetch saved plants' });
+    }
+  },
+
+  getSavedPlantDetails: async (req, res) => {
+    const { userId, plantId } = req.params;
+
+    try {
+      const userExists = await userModel.findById(userId);
+      if (!userExists) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const savedPlant = await savedPlantModel.findOne({ userId, plantId });
+      if (!savedPlant) {
+        return res.status(404).json({ error: 'Plant not saved by user' });
+      }
+
+      const plant = await plantModel.findOne({ id: plantId });
+      if (!plant) {
+        return res.status(404).json({ error: 'Plant not found' });
+      }
+
+      res.status(200).json(plant);
+    } catch (error) {
+      console.error('Error fetching plant details:', error);
+      res.status(500).json({ error: 'Failed to fetch plant details' });
     }
   }
 }
