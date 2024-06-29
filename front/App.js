@@ -6,6 +6,8 @@ import Signup from './Signup';
 import HomeScreen from './HomeScreen';
 import PlantIdentification from './PlantIdentification';
 import PlantIdentificationResult from './PlantIdentificationResult';
+import SavedList from './SavedList';
+import ReminderScreen from './ReminderScreen'; 
 
 const Stack = createStackNavigator();
 
@@ -18,8 +20,11 @@ export default function App() {
         <Stack.Screen name="HomeScreen" component={HomeScreen} />
         <Stack.Screen name="PlantIdentification" component={PlantIdentification} />
         <Stack.Screen name="PlantIdentificationResult" component={PlantIdentificationResult} />
+        <Stack.Screen name="SavedList" component={SavedList} />
+        <Stack.Screen name="ReminderScreen" component={ReminderScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
+
 

@@ -3,57 +3,58 @@ import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'reac
 import { useNavigation } from '@react-navigation/native';
 import * as Yup from 'yup';
 import axios from 'axios';
-import {BASE_URL} from '@env';
+import { BASE_URL } from '@env';
+
 const signUpSchema = Yup.object().shape({
   fullName: Yup.string().required('Full name is required'),
-  //username: Yup.string().required('Username is required'),
-  email: Yup.string().email('Invalid email').required('Email is required').matches(
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    'Invalid email format'
-  ),
+  username: Yup.string().required('Username is required'),
+  email: Yup.string()
+    .email('Invalid email')
+    .required('Email is required')
+    .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format'),
   pass: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
 });
 
+const SignUp = () => {
+  const navigation = useNavigation();
+  const [fullName, setFullName] = useState('');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [pass, setPassword] = useState('');
+  const [error, setError] = useState('');
 
+  const handleSignUp = async () => {
+    try {
+      await signUpSchema.validate({ fullName, username, email, pass });
 
-  const SignUp = () => {
-    const navigation = useNavigation();
-    const [fullName, setFullName] = useState('');
-    const [email, setEmail] = useState('');
-    const [pass, setPassword] = useState('');
-    const [error, setError] = useState('');
-  
-    const handleSignUp = async () => {
-      try {
-        await signUpSchema.validate({ fullName, email, pass });
-    
-        const response = await axios.post(`${BASE_URL}/auth/signup`, {
-          fullName,
-          email,
-          pass,
-        });
-    
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-    
-        const result = await response.data;
-    
-        console.log('Response data:', result);
-    
-        if (result === 'new') {
-          setError('');
-          navigation.navigate('HomeScreen'); // Navigate to HomeScreen after successful signup
-        } else {
-          setError('Signup failed');
-        }
-      } catch (error) {
-        console.log('Error:', error);
+      const response = await axios.post(`${BASE_URL}/auth/signup`, {
+        fullName,
+        username,
+        email,
+        pass,
+      });
+
+      const result = response.data;
+
+      if (result.message === 'User registered successfully. Verification email sent.') {
+        setError('');
+        navigation.navigate('HomeScreen'); // Navigate to HomeScreen after successful signup
+      } else {
+        setError('Signup failed');
+      }
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.error) {
+        // Display specific error messages based on the backend response
+        setError(error.response.data.error);
+      } else if (error instanceof Yup.ValidationError) {
+        // Display validation error messages
+        setError(error.message);
+      } else {
         setError('An error occurred');
       }
-    };
-    
-  
-  
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Image
@@ -69,7 +70,12 @@ const signUpSchema = Yup.object().shape({
         value={fullName}
         onChangeText={setFullName}
       />
-      
+      <TextInput
+        placeholder="Username"
+        style={styles.input}
+        value={username}
+        onChangeText={setUsername}
+      />
       <TextInput
         placeholder="Email"
         style={styles.input}

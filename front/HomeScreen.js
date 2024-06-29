@@ -1,16 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons';
 import { TextInput, Text, Card, Avatar, List } from 'react-native-paper';
 import BottomMenu from './BottomMenu';
-import {BASE_URL} from '@env';
+import { BASE_URL } from '@env';
 
 const HomeScreen = ({ navigation }) => {
   const [userName, setUserName] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [currentFactIndex, setCurrentFactIndex] = useState(0);
+
+  const plantFacts = [
+    "A sunflower looks like one large flower, but each head is made up of hundreds of tiny flowers called florets.",
+    "Bamboo is the fastest-growing woody plant in the world; it can grow up to 35 inches in a single day.",
+    "The world’s tallest tree is a coast redwood in California, measuring more than 379 feet tall.",
+    "Banana plants are technically herbs, not trees, and their fruit is classified as a berry.",
+    "Venus flytraps are carnivorous plants that can consume insects and even small animals.",
+    "The Amazon Rainforest produces more than 20% of the world’s oxygen supply.",
+    "Cacti can store an enormous amount of water in their thick stems to survive long droughts.",
+    "There are about 200,000 edible plant species on Earth, yet we only eat about 200 of them.",
+    "Plants like ferns and mosses do not produce seeds; they reproduce via spores.",
+    "The African baobab tree can live for thousands of years and is known as the 'Tree of Life'."
+  ];
 
   useEffect(() => {
     const fetchUserName = async () => {
@@ -29,6 +43,12 @@ const HomeScreen = ({ navigation }) => {
     };
 
     fetchUserName();
+
+    const interval = setInterval(() => {
+      setCurrentFactIndex((prevIndex) => (prevIndex + 1) % plantFacts.length);
+    }, 5000); // Change fact every 5 seconds
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleSearch = async () => {
@@ -53,19 +73,22 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  const handleSearchResultClick = async (plantName) => {
+  const handleSearchResultClick = async (access_token) => {
     try {
-      console.log(plantName);
-      const response = await fetch(`${BASE_URL}/plants/identify?name=${encodeURIComponent(plantName)}`);
-      const result = await response.json();
-      navigation.navigate('PlantIdentificationResult', { result });
+      const response = await axios.get(`${BASE_URL}/plants/details/${access_token}`);
+      navigation.navigate('PlantIdentificationResult', { result: response.data });
     } catch (error) {
-      console.error('Failed to identify plant:', error);
+      console.error('Failed to fetch plant details:', error);
     }
   };
-  
+
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.topBar}>
+        <TouchableOpacity onPress={() => {}}>
+          <MaterialIcons name="account-circle" size={30} color="black" />
+        </TouchableOpacity>
+      </View>
       <Text style={styles.heading}>Hello, {userName}</Text>
 
       <View style={styles.searchContainer}>
@@ -83,7 +106,7 @@ const HomeScreen = ({ navigation }) => {
       {searchResults.length > 0 && (
         <List.Section title="Search Results">
           {searchResults.map((item, index) => (
-            <TouchableOpacity key={index.toString()} onPress={() => handleSearchResultClick(item.entity_name)}>
+            <TouchableOpacity key={index.toString()} onPress={() => handleSearchResultClick(item.access_token)}>
               <List.Item
                 title={item.matched_in}
                 description={item.entity_name}
@@ -96,48 +119,46 @@ const HomeScreen = ({ navigation }) => {
       )}
 
       <Text style={styles.subHeading}>Explore your options</Text>
-      <View style={styles.optionsContainer}>
-        <Card style={styles.option} onPress={() => {}}>
-          <Card.Content style={styles.optionContent}>
-            <Avatar.Icon size={30} icon="help" />
-            <Text style={styles.optionText}>Take quiz</Text>
-          </Card.Content>
-        </Card>
-        <Card style={styles.option} onPress={() => {}}>
-          <Card.Content style={styles.optionContent}>
-            <Avatar.Icon size={30} icon="flower" />
-            <Text style={styles.optionText}>See your plants</Text>
-          </Card.Content>
-        </Card>
-      </View>
+      
+      <Card style={[styles.option, { backgroundColor: '#4CAF50' }]} onPress={() => {}}>
+        <Card.Content style={styles.optionContent}>
+          <Avatar.Icon size={30} icon="help" style={[styles.optionIcon, { backgroundColor: '#3E2723' }]} />
+          <Text style={[styles.optionText, { color: 'white' }]}>Take Quiz</Text>
+        </Card.Content>
+      </Card>
 
-      <Text style={styles.subHeading}>Search Categories</Text>
-      <View style={styles.categoriesContainer}>
-        <Card style={styles.categoryCard} onPress={() => {}}>
-          <Card.Cover source={require('./assets/ferns.jpg')} style={styles.categoryImage} />
+      <Card style={[styles.option, { backgroundColor: '#4CAF50' }]} onPress={() => navigation.navigate('SavedList')}>
+        <Card.Content style={styles.optionContent}>
+          <Avatar.Icon size={30} icon="format-list-bulleted" style={[styles.optionIcon, { backgroundColor: '#3E2723' }]} />
+          <Text style={[styles.optionText, { color: 'white' }]}>Saved List</Text>
+        </Card.Content>
+      </Card>
+
+      <View style={styles.plantFactsContainer}>
+        <Text style={styles.plantFactsTitle}>Plant Facts</Text>
+        <Card style={styles.plantFactCard}>
           <Card.Content>
-            <Text style={styles.categoryText}>Ferns</Text>
-          </Card.Content>
-        </Card>
-        <Card style={styles.categoryCard} onPress={() => {}}>
-          <Card.Cover source={require('./assets/homeplant.jpg')} style={styles.categoryImage} />
-          <Card.Content>
-            <Text style={styles.categoryText}>Home Plants</Text>
+            <Text style={styles.plantFactText}>{plantFacts[currentFactIndex]}</Text>
           </Card.Content>
         </Card>
       </View>
 
       <BottomMenu navigation={navigation} />
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 20,
-    paddingTop: 40,
+    paddingTop: 20,
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginRight: 10,
   },
   heading: {
     fontSize: 24,
@@ -152,8 +173,9 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
     width: '100%',
+    marginTop: 10,
   },
   searchIcon: {
     marginRight: 10,
@@ -162,48 +184,43 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
   },
-  resultsContainer: {
-    marginBottom: 20,
-  },
   resultItem: {
     backgroundColor: '#f0f0f0',
     borderRadius: 10,
     marginBottom: 10,
   },
-  optionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
   option: {
-    flex: 1,
-    margin: 5,
+    marginBottom: 10,
+    padding: 10,
+    borderRadius: 10,
   },
   optionContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+  optionIcon: {
+    backgroundColor: '#3E2723',
+  },
   optionText: {
     fontSize: 18,
     marginLeft: 10,
-  },
-  categoriesContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  categoryCard: {
-    flex: 1,
-    margin: 5,
-  },
-  categoryText: {
-    fontSize: 18,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 10,
+    color: 'white',
   },
-  categoryImage: {
-    height: 150,
-    borderRadius: 10,
+  plantFactsContainer: {
+    marginTop: 20,
+  },
+  plantFactsTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  plantFactCard: {
+    marginBottom: 10,
+  },
+  plantFactText: {
+    fontSize: 18,
+    lineHeight: 24,
   },
 });
 
