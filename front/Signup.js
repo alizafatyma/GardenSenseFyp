@@ -1,68 +1,75 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import * as Yup from 'yup';
 import axios from 'axios';
-
-const baseURL = 'http://192.168.100.17:3000';
-
-// Define the schema for signup validation
+import {BASE_URL} from '@env';
 const signUpSchema = Yup.object().shape({
   fullName: Yup.string().required('Full name is required'),
+  //username: Yup.string().required('Username is required'),
   email: Yup.string().email('Invalid email').required('Email is required').matches(
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     'Invalid email format'
   ),
-  password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+  pass: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
 });
 
-const SignUp = () => {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
 
-  const handleSignUp = async () => {
-    try {
-      await signUpSchema.validate({ fullName, email, password });
 
-      const userData = {
-        fullName: fullName,
-        email: email,
-        pass: password
-      };
-
-      console.log('Sending request...');
-      setError(''); 
-      const response = await axios.post(`${baseURL}/signup`, userData);
+  const SignUp = () => {
+    const navigation = useNavigation();
+    const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [pass, setPassword] = useState('');
+    const [error, setError] = useState('');
+  
+    const handleSignUp = async () => {
+      try {
+        await signUpSchema.validate({ fullName, email, pass });
     
-      if (response.data === 'new') {
-        setError('');
-        // Handle successful signup
-        console.log('Signup successful');
-      } else if (response.data === 'exist') {
-        setError('Email already exists');
+        const response = await axios.post(`${BASE_URL}/auth/signup`, {
+          fullName,
+          email,
+          pass,
+        });
+    
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+    
+        const result = await response.data;
+    
+        console.log('Response data:', result);
+    
+        if (result === 'new') {
+          setError('');
+          navigation.navigate('HomeScreen'); // Navigate to HomeScreen after successful signup
+        } else {
+          setError('Signup failed');
+        }
+      } catch (error) {
+        console.log('Error:', error);
+        setError('An error occurred');
       }
-
-    } catch (validationError) {
-      setError(validationError.message);
-    }
-  };
-
+    };
+    
+  
+  
   return (
     <View style={styles.container}>
       <Image
-         source={require('./assets/GardenSense-removebg-preview.png')}
+        source={require('./assets/GardenSense-removebg-preview.png')}
         style={styles.logo}
         resizeMode="contain"
       />
       <Text style={styles.title}>Sign Up</Text>
-      {error ? <Text style={styles.error}>{error}</Text> : <Text style={styles.success}>Looks good!</Text>}
+      {error ? <Text style={styles.error}>{error}</Text> : null}
       <TextInput
         placeholder="Full Name"
         style={styles.input}
         value={fullName}
         onChangeText={setFullName}
       />
+      
       <TextInput
         placeholder="Email"
         style={styles.input}
@@ -73,7 +80,7 @@ const SignUp = () => {
         placeholder="Password"
         style={styles.input}
         secureTextEntry
-        value={password}
+        value={pass}
         onChangeText={setPassword}
       />
       <TouchableOpacity style={styles.button} onPress={handleSignUp}>
@@ -92,7 +99,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   logo: {
-    width: 200, // Adjust the width and height as needed
+    width: 200,
     height: 200,
     marginBottom: 20,
   },
@@ -125,10 +132,6 @@ const styles = StyleSheet.create({
   },
   error: {
     color: 'red',
-    marginBottom: 12,
-  },
-  success: {
-    color: 'green',
     marginBottom: 12,
   },
 });
