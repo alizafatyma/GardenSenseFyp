@@ -1,6 +1,7 @@
 const userModel = require("../models/users");
 const plantModel = require("../models/plant");
 const savedPlantModel = require("../models/savedPlant");
+const bcrypt = require("bcryptjs");
 
 const userController = {
   getUser: async (req, res) => {
@@ -16,6 +17,97 @@ const userController = {
         return res.status(404).json({ message: "User not found" });
       }
       res.status(500).json({ message: "Server error" });
+    }
+  },
+
+  updatePass: async (req, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      const user = await userModel.findById(req.params.userId);
+      
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isCurrentPasswordValid) {
+        return res.status(401).json({ error: 'Current password is incorrect' });
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+
+      await userModel.findOneAndUpdate(
+        { _id: user._id },
+        { $set: { password: hashedNewPassword } }
+      );
+
+      res.status(200).json({ message: 'Password updated successfully' });
+    } catch (error) {
+      res.status(500).json({ error: 'Internal Server Error' });
+      console.log(error);
+    }
+  },
+
+  updateProfile: async (req, res) => {
+    try {
+      const { fullName, username, profileImage, bio, fcmToken } = req.body;
+      const user = await userModel.findById(req.params.userId);
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Check for unique username and fcmToken if they are being updated
+      if (username && username !== user.username) {
+        const existingUsername = await userModel.findOne({ username });
+        if (existingUsername) {
+          return res.status(409).json({ error: 'Username already exists' });
+        }
+      }
+
+      if (fcmToken && fcmToken !== user.fcmToken) {
+        const existingTokenUser = await userModel.findOne({ fcmToken });
+        if (existingTokenUser) {
+          return res.status(409).json({ error: 'FCM token is already in use' });
+        }
+      }
+
+      // Update user fields based on provided values in req.body
+      const updatedFields = {
+        fullName: fullName || user.fullName,
+        username: username || user.username,
+        profileImage: profileImage || user.profileImage,
+        bio: bio || user.bio,
+        fcmToken: fcmToken || user.fcmToken
+      };
+
+      // Perform the update using findOneAndUpdate
+      const updatedUser = await userModel.findOneAndUpdate(
+        { _id: user._id },
+        { $set: updatedFields },
+        { new: true } // Return the updated document
+      );
+      res.status(200).json({ message: 'Profile updated successfully', updatedUser });
+    } catch (error) {
+      res.status(500).json({ error: 'Internal Server Error' });
+      console.error(error);
+    }
+  },
+
+  findEmail: async (req, res) => {
+    try {
+      const { email } = req.body;
+      const user = await userModel.findOne({ email: email });
+
+      if (user) {
+        res.status(200).json({ message: 'Email is valid' });
+      } else {
+        res.status(404).json({ error: 'Email not found' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   },
 

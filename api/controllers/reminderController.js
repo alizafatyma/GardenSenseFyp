@@ -114,7 +114,6 @@ exports.deleteReminder = async (req, res = null) => {
 
 const updateRecurringReminders = async () => {
   const now = new Date();
-  console.log(now);
 
   const reminders = await Reminder.find({
     dateTime: { $lte: now },
@@ -122,7 +121,6 @@ const updateRecurringReminders = async () => {
   });
 
   for (const reminder of reminders) {
-    console.log(reminder);
     const user = await User.findById(reminder.userId);
     const message = `Time to ${reminder.category} your plant!`;
     

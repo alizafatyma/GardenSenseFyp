@@ -1,16 +1,16 @@
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
+
 const verifyToken = (req, res, next) => {
-  const bearer = req.header("Authorization");
-  if (!bearer) {
-    return res.status(401).json({ message: "No bearer provided" });
+  const token = req.headers['authorization'];
+  if (!token) {
+    return res.status(403).json({ error: 'No token provided' });
   }
-  const token = bearer.split(" ");
-  jwt.verify(token[1], "mySecret", (err, decoded) => {
+
+  jwt.verify(token.split(' ')[1], process.env.JWT_SECRET || 'mySecret', (err, decoded) => {
     if (err) {
-      //   console.log(token[1]);
-      return res.send(false);
+      return res.status(500).json({ error: 'Failed to authenticate token' });
     }
-    // res.send(decoded);
+    req.userId = decoded.userId;
     next();
   });
 };

@@ -106,82 +106,38 @@ const signupController = {
       }
     }
   },
-
-  findEmail: async (req, res) => {
-    try {
-      let { email } = req.body;
-      const isValid = await userModel.findOne({ email });
-      // console.log(email);
-      if (isValid) {
-        res.send("valid");
-      } else {
-        res.send("inValid");
-      }
-    } catch (error) {
-      console.log(`findEmail ERROR: ${error.message}`);
-    }
-  },
-  updatePass: async (req, res) => {
-    try {
-      let { email, currentPassword, newPassowrd } = req.body;
-      // console.log(email, pass);
-
-      const userExists = await userModel.findOne(email);
-      if(!userExists)
-        {
-          res.send
-        }
-      const salt = await bcrypt.genSalt(10);
-      const hash = await bcrypt.hash(pass, salt);
-      pass = hash;
-      const result = await userModel.findOneAndUpdate({
-        eamil: email,
-        password: pass,
-      });
-      if (result) {
-        // console.log(result);
-
-        res.send("done");
-      } else {
-        // console.log("fail");
-      }
-    } catch (error) {
-      console.log(`UpdatePass ERROR: ${error}`);
-    }
-  },
+  
   login: async (req, res) => {
     try {
       const { email, password } = req.body;
-      //console.log(email+password);
       const result = await userModel.findOne({ email });
-
-      if (result) {
-        const isValid = await bcrypt.compare(password, result.password);
-        if (isValid) {
-          jwt.sign(
-            { userId: result._id },  // Include user ID in the payload
-            "mySecret",
-            { expiresIn: "1h" },
-            (err, token) => {
-              if (err) {
-                console.log(err.message);
-                res.send(err.message);
-              } else {
-                return res.send({ result: result, userId: result._id, token: token });  // Send user ID along with token
-              }
-            }
-          );
-        } else {
-          res.send(false);  // Invalid password
-        }
-      } else {
-        res.send(false);  // Email not found
+  
+      if (!result) {
+        return res.status(404).json({ error: 'Email not found' });
       }
+  
+      const isValid = await bcrypt.compare(password, result.password);
+      if (!isValid) {
+        return res.status(401).json({ error: 'Invalid password' });
+      }
+  
+      jwt.sign(
+        { userId: result._id }, // Include user ID in the payload
+        process.env.JWT_SECRET || "mySecret", // Use environment variable for the secret
+        { expiresIn: "1h" },
+        (err, token) => {
+          if (err) {
+            console.log(err.message);
+            return res.status(500).json({ error: 'Error generating token' });
+          }
+          return res.status(200).json({ result, userId: result._id, token });
+        }
+      );
     } catch (error) {
       console.log(`Login Error: ${error.message}`);
-      res.status(500).send("Internal Server Error");
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   },
-};
+};  
 
 module.exports = signupController;
