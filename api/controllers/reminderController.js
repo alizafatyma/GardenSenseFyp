@@ -156,4 +156,4 @@ const updateRecurringReminders = async () => {
 };
 
 // Run the job every minute
-cron.schedule('* * * * *', updateRecurringReminders);
+//cron.schedule('* * * * *', updateRecurringReminders);

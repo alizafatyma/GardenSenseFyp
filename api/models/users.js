@@ -35,6 +35,10 @@ const userSchema = mongoose.Schema({
   },
   fcmToken: {
     type: String,
+  },
+  userRating: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true

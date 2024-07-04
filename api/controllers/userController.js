@@ -210,7 +210,7 @@ const userController = {
             id: plantDetails.id,
             plant_name: plantDetails.plant_name,
             image: plantDetails.image,
-            common_name: plantDetails.common_names[0]
+            common_name: plantDetails.common_names && plantDetails.common_names.length > 0 ? plantDetails.common_names[0] : 'N/A'
           });
         } else {
           console.log(`Plant details not found for savedPlantId: ${savedPlant._id}`);
