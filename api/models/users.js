@@ -37,8 +37,8 @@ const userSchema = mongoose.Schema({
     type: String,
   },
   userRating: {
-    type: Number,
-    default: 0
+    type: String,
+    default: "Rating not available"
   }
 }, {
   timestamps: true

@@ -68,6 +68,28 @@ const postQuizQuestion = async (req, res) => {
     }
 };
 
+const getFunRatingLabel = (rating) => {
+    if (rating >= 0 && rating < 0.25) {
+        return "Novice Gardener 🌱";
+    } else if (rating >= 0.25 && rating < 0.5) {
+        return "Amateur Gardener 🌿";
+    } else if (rating >= 0.5 && rating < 0.75) {
+        return "Experienced Gardener 🌼";
+    } else if (rating >= 0.75 && rating < 1) {
+        return "Gardening Enthusiast 🌷";
+    } else if (rating === 1) {
+        return "Master Gardener 🌳";
+    } else {
+        return "Rating not available";
+    }
+};
+
+// Example usage
+const userRating = 0.91;
+const funRatingLabel = getFunRatingLabel(userRating);
+console.log(funRatingLabel); // Outputs: Gardening Enthusiast 🌷
+
+
 const calculateUserRating = async (userId) => {
     try {
         const results = await quizResult.find({ userId });
@@ -90,7 +112,8 @@ const calculateUserRating = async (userId) => {
 
         if (totalWeight > 0) {
             const weightedAverage = totalWeightedScore / totalWeight;
-            await user.findByIdAndUpdate(userId, { userRating: weightedAverage });
+            const funRatingLabel = getFunRatingLabel(weightedAverage);
+            await user.findByIdAndUpdate(userId, { userRating: funRatingLabel });
             console.log(await user.findById(userId));
             console.log(`User rating updated successfully for userId: ${userId}`);
         } else {
