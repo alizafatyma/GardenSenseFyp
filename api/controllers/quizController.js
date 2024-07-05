@@ -84,10 +84,6 @@ const getFunRatingLabel = (rating) => {
     }
 };
 
-// Example usage
-const userRating = 0.91;
-const funRatingLabel = getFunRatingLabel(userRating);
-console.log(funRatingLabel); // Outputs: Gardening Enthusiast 🌷
 
 
 const calculateUserRating = async (userId) => {
