@@ -4,13 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "mocha --exit"
+    
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "chai": "^5.4.0",
+    "chai-http": "^4.3.0",
+    "mocha": "^9.0.0",
     "axios": "^1.7.2",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.3.1",
@@ -24,6 +28,9 @@
     "nodemon": "^3.0.1"
   },
   "devDependencies": {
-    "prettier": "^3.2.5"
+    "chai": "^5.1.1",
+    "mocha": "^10.6.0",
+    "prettier": "^3.2.5",
+    "supertest": "^7.0.0"
   }
 }
